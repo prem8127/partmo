@@ -1,0 +1,66 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Precision Parts – Hostinger .htaccess
+# Place this file at the ROOT of your Hostinger public_html folder
+# (or the sub-folder where you upload the Flutter web build).
+#
+# What this does:
+#   1. Rewrites all unknown paths → index.html   (Flutter SPA routing)
+#   2. Enables gzip compression                 (faster loads)
+#   3. Adds long-term caching for assets         (Flutter hashes filenames)
+#   4. Forces HTTPS redirect
+# ─────────────────────────────────────────────────────────────────────────────
+
+Options -Indexes
+
+# ── 1. Force HTTPS ────────────────────────────────────────────────────────────
+RewriteEngine On
+RewriteCond %{HTTPS} off
+RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+# ── 2. SPA fallback → index.html ─────────────────────────────────────────────
+RewriteEngine On
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^ /index.html [L]
+
+# ── 3. Gzip compression ───────────────────────────────────────────────────────
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css
+  AddOutputFilterByType DEFLATE application/javascript application/json
+  AddOutputFilterByType DEFLATE application/wasm
+  AddOutputFilterByType DEFLATE font/woff font/woff2
+</IfModule>
+
+# ── 4. Long-term caching (Flutter hashes asset names) ────────────────────────
+<IfModule mod_expires.c>
+  ExpiresActive On
+
+  # HTML — never cache (always fresh)
+  ExpiresByType text/html "access plus 0 seconds"
+
+  # Flutter compiled JS / WASM
+  ExpiresByType application/javascript "access plus 1 year"
+  ExpiresByType application/wasm        "access plus 1 year"
+
+  # Fonts
+  ExpiresByType font/woff               "access plus 1 year"
+  ExpiresByType font/woff2              "access plus 1 year"
+  ExpiresByType application/font-woff   "access plus 1 year"
+
+  # Images
+  ExpiresByType image/png               "access plus 1 year"
+  ExpiresByType image/jpeg              "access plus 1 year"
+  ExpiresByType image/webp              "access plus 1 year"
+  ExpiresByType image/svg+xml           "access plus 1 year"
+  ExpiresByType image/x-icon            "access plus 1 year"
+
+  # CSS
+  ExpiresByType text/css                "access plus 1 year"
+</IfModule>
+
+# ── 5. Security headers ───────────────────────────────────────────────────────
+<IfModule mod_headers.c>
+  Header always set X-Content-Type-Options  "nosniff"
+  Header always set X-Frame-Options         "SAMEORIGIN"
+  Header always set Referrer-Policy         "strict-origin-when-cross-origin"
+</IfModule>
